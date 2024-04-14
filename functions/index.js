@@ -175,7 +175,10 @@ app.get("/api/activeUserImage/:userId", async (req, res) => {
     }
 
     await updateFolderAndActiveFolder(userId, 1, activeFolder.folderId)
-    const { folderItem } = await getActiveFolderItemImageURL(userId, activeFolder);
+    const { folderItem } = await getActiveFolderItemImageURL(userId, {
+        ...activeFolder,
+        activeFolderItemIdx: activeFolder.activeFolderItemIdx + 1
+    });
     const activeImageUrl = applyEffectToCloudinaryImage(folderItem.image, folderItem.description)
 
 
@@ -183,10 +186,10 @@ app.get("/api/activeUserImage/:userId", async (req, res) => {
 });
 
 // Defining the port on which the express app will listen
-const PORT = 3000;
+// const PORT = 3000;
 
-// // Making the express app listen on the defined port
-app.listen(PORT, console.log(`listening on PORT ${PORT}`));
+// // // Making the express app listen on the defined port
+// app.listen(PORT, console.log(`listening on PORT ${PORT}`));
 
-// exports.app = functions.https.onRequest(app);
+exports.app = functions.https.onRequest(app);
 
