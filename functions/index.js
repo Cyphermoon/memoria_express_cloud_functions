@@ -174,9 +174,10 @@ app.get("/api/activeUserImage/:userId", async (req, res) => {
         return res.status(404).send("User not found");
     }
 
-    await updateFolderAndActiveFolder(userId, 1, activeFolder.folderId)
+    activeFolder.folderCategory === "personal" ? await updateFolderAndActiveFolder(userId, 1, activeFolder.folderId) : await updateUserActiveFolderItemIdx(userId, 1);
     const { folderItem } = await getActiveFolderItemImageURL(userId, {
         ...activeFolder,
+        // perform optimistic update
         activeFolderItemIdx: activeFolder.activeFolderItemIdx + 1
     });
     const activeImageUrl = applyEffectToCloudinaryImage(folderItem.image, folderItem.description)
