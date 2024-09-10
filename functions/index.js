@@ -36,20 +36,23 @@ function truncateText(text, maxLength = 20) {
 }
 
 
-function applyEffectToCloudinaryImage(image, text) {
+function applyEffectToCloudinaryImage(image, text, device_width = 414,
+    device_height = 896) {
     const url = image.secure_url
     // encode the text to be appropriate in a url
     const transformedText = encodeURI(truncateText(text, 20))
     // set the text size to 5% of the image height
-    const textSize = Math.round(image.height * 0.05);
+    const textSize = Math.round(image.height * 0.05)
     // set the y offset to 1/6 of the image height
-    const yOffset = Math.round(image.height / 3)
+    const yOffset = Math.round(image.height / 6)
+    // set the dimension of the image
+    const dimension = `/w_${device_width},h_${device_height},c_fill,g_auto`
     // set the effect to apply to the image
-    const effect = `/co_rgb:000000,e_colorize:40/co_rgb:DDD9D9,l_text:georgia_${textSize}_italic_normal_left:${transformedText}/fl_layer_apply,g_north,x_-30,y_${yOffset}`;
+    const effect = `/co_rgb:000000,e_colorize:40/co_rgb:DDD9D9,l_text:georgia_${textSize}_italic_normal_left:${transformedText}/fl_layer_apply,g_north,x_-30,y_${yOffset}${dimension}`
     // get the index of the /upload in the url
     const splitIndex = url.indexOf("/upload") + "/upload".length
     // insert the effect into the url
-    return url.slice(0, splitIndex) + `${effect}` + url.slice(splitIndex)
+    return url.slice(0, splitIndex) + `/${effect}` + url.slice(splitIndex)
 
 }
 
@@ -174,23 +177,26 @@ app.get("/api/activeUserImage/:userId", async (req, res) => {
         return res.status(404).send("User not found");
     }
 
-    activeFolder.folderCategory === "personal" ? await updateFolderAndActiveFolder(userId, 1, activeFolder.folderId) : await updateUserActiveFolderItemIdx(userId, 1);
+    activeFolder.folderCategory === "personal" ?
+        await updateFolderAndActiveFolder(userId, 1, activeFolder.folderId) :
+        await updateUserActiveFolderItemIdx(userId, 1);
+
     const { folderItem } = await getActiveFolderItemImageURL(userId, {
         ...activeFolder,
         // perform optimistic update
         activeFolderItemIdx: activeFolder.activeFolderItemIdx + 1
     });
-    const activeImageUrl = applyEffectToCloudinaryImage(folderItem.image, folderItem.description)
+    const activeImageUrl = applyEffectToCloudinaryImage(folderItem.image, folderItem.description, folderItem.device_created_width, folderItem.device_created_height)
 
 
     return res.status(200).redirect(encodeURI(activeImageUrl));
 });
 
 // Defining the port on which the express app will listen
-// const PORT = 3000;
+const PORT = 3000;
 
 // // // Making the express app listen on the defined port
-// app.listen(PORT, console.log(`listening on PORT ${PORT}`));
+app.listen(PORT, console.log(`listening on PORT ${PORT}`));
 
 exports.app = functions.https.onRequest(app);
 
